@@ -16,6 +16,10 @@ export function activate(context: vscode.ExtensionContext) {
         public provideTextDocumentContent(uri: vscode.Uri): string {
             let editor = vscode.window.activeTextEditor;
 
+            if (!editor) {
+                return this.errorSnippet(new Error(`No active editor.`));
+            }
+
             if (!(editor?.document.languageId === "nomnoml")) {
                 return this.errorSnippet(
                     new Error(
@@ -44,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         private generateDiagram(text: string): string {
             let svg: string;
-            let backgroundColor: string = undefined;
+            let backgroundColor: string | undefined = undefined;
 
             try {
                 svg = nomnoml.renderSvg(text);
@@ -91,7 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.workspace.onDidChangeTextDocument(
         (e: vscode.TextDocumentChangeEvent) => {
-            if (e.document === vscode.window.activeTextEditor.document) {
+            if (e.document === vscode.window.activeTextEditor?.document) {
                 provider.update(previewUri);
             }
         }
