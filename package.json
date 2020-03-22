@@ -5,23 +5,22 @@
   "version": "0.3.0",
   "publisher": "doctorrustynelson",
   "license": "MIT",
-  "repository": { 
-    "type": "git", 
+  "repository": {
+    "type": "git",
     "url": "https://github.com/doctorrustynelson/vscode-nomnoml.git"
   },
   "bugs": {
     "url": "https://github.com/doctorrustynelson/vscode-nomnoml/issues"
   },
-  
   "engines": {
     "vscode": "^1.43.0"
   },
-  "keywords": [ 
-    "nomnoml", 
+  "keywords": [
+    "nomnoml",
     "uml",
     "diagrams"
   ],
-  "categories": [ 
+  "categories": [
     "Other"
   ],
   "activationEvents": [
@@ -29,14 +28,20 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "languages": [{
-      "id": "nomnoml",
-      "extensions": [ ".nomnoml" ] 
-    }],
-    "commands": [{
-      "command": "extension.nomnoml",
-      "title": "View: nomnoml"
-    }]
+    "languages": [
+      {
+        "id": "nomnoml",
+        "extensions": [
+          ".nomnoml"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "extension.nomnoml",
+        "title": "View: nomnoml"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -44,7 +49,7 @@
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {
-    "nomnoml": "0.0.4"
+    "nomnoml": "^0.6.2"
   },
   "devDependencies": {
     "@types/node": "^12.11.7",
