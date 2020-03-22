@@ -14,7 +14,7 @@
   },
   
   "engines": {
-    "vscode": "^1.0.0"
+    "vscode": "^1.43.0"
   },
   "keywords": [ 
     "nomnoml", 
@@ -27,7 +27,7 @@
   "activationEvents": [
     "onCommand:extension.nomnoml"
   ],
-  "main": "./out/src/extension",
+  "main": "./out/extension.js",
   "contributes": {
     "languages": [{
       "id": "nomnoml",
@@ -39,15 +39,19 @@
     }]
   },
   "scripts": {
-    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
   },
   "dependencies": {
     "nomnoml": "0.0.4"
   },
   "devDependencies": {
-    "typescript": "^1.8.5",
-    "vscode": "^0.11.0"
+    "@types/node": "^12.11.7",
+    "@types/vscode": "^1.43.0",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "eslint": "^6.8.0",
+    "typescript": "^3.7.5"
   }
 }
