@@ -7,124 +7,139 @@ var nomnoml = require("nomnoml");
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    let previewUri = vscode.Uri.parse("nomnoml-preview://nomnoml-preview");
+    function errorSnippet(error: Error): string {
+        const message = error.message.replace(
+            /\n/g,
+            "<br>&nbsp&nbsp&nbsp&nbsp&nbsp"
+        );
 
-    class TextDocumentContentProvider
-        implements vscode.TextDocumentContentProvider {
-        private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+        return `<html>
+            <body>
+                <h1>Error: <span style="font-family: monospace;">${error.name}</span></h1>
+                <hr>
+                <h2>Message: <span style="font-family: monospace;">${message}</span></h2>
+            </body>
+        </html>`;
+    }
 
-        public provideTextDocumentContent(uri: vscode.Uri): string {
-            let editor = vscode.window.activeTextEditor;
+    function generateDiagram(text: string): string {
+        let svg: string;
+        let backgroundColor: string | undefined = undefined;
 
-            if (!editor) {
-                return this.errorSnippet(new Error(`No active editor.`));
-            }
-
-            if (!(editor?.document.languageId === "nomnoml")) {
-                return this.errorSnippet(
-                    new Error(
-                        `Active editor doesn't show a nomnoml document (languageId is ${editor.document.languageId}).`
-                    )
-                );
-            }
-
-            let text = editor.document.getText();
-
-            return this.generateDiagram(text);
+        try {
+            svg = nomnoml.renderSvg(text);
+            let result = /\#bgColor\:\s?(\S*)/.exec(text);
+            if (result && result[1]) backgroundColor = result[1];
+        } catch (exception) {
+            return errorSnippet(exception);
         }
 
-        private errorSnippet(error: Error): string {
-            return `<html><body>
-                        <h1>Error: <span style="font-family: monospace;">${
-                            error.name
-                        }</span></h1>
-                        <hr>
-                        <h2>Message: <span style="font-family: monospace;">${error.message.replace(
-                            /\n/g,
-                            "<br>&nbsp&nbsp&nbsp&nbsp&nbsp"
-                        )}</span></h2>
-                    </body></html>`;
-        }
+        return `<html><body style="margin: 0px; width: 100%; height: 100%; overflow:hidden;">
+            <div style="width: 100%; height: 100%; overflow: scroll;">
+            ${svg}
+            </div> 
+            <script>
+                var svg = document.getElementsByTagName( 'svg' )[ 0 ];
+                var boundingBox = svg.getBBox( );
+                var width = boundingBox.width + 20;
+                var height = boundingBox.height + 20;
+                svg.style['min-width'] = width + 'px';
+                svg.style['min-height'] = height + 'px';
+                ${
+                    backgroundColor != undefined
+                        ? `svg.style['background-color'] = '${backgroundColor}';`
+                        : "//no background color specified."
+                }
+            </script>
+        </body></html>`;
+    }
 
-        private generateDiagram(text: string): string {
-            let svg: string;
-            let backgroundColor: string | undefined = undefined;
+    function getSplashContent(): string {
+        return `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Nomnoml Preview</title>
+        </head>
+        <body width="100%" height="100%">
+            <p>Nomnoml Preview</p>
+        </body>
+        </html>`;
+    }
 
-            try {
-                svg = nomnoml.renderSvg(text);
-                let result = /\#bgColor\:\s?(\S*)/.exec(text);
-                if (result && result[1]) backgroundColor = result[1];
-            } catch (exception) {
-                return this.errorSnippet(exception);
-            }
+    function createPreviewPanel(
+        context: vscode.ExtensionContext
+    ): vscode.WebviewPanel {
+        return vscode.window.createWebviewPanel(
+            "extension",
+            "Nomnoml Preview",
+            vscode.ViewColumn.Two,
+            {}
+        );
+    }
 
-            return `<html><body style="margin: 0px; width: 100%; height: 100%; overflow:hidden;">
-                <div style="width: 100%; height: 100%; overflow: scroll;">
-                ${svg}
-                </div> 
-                <script>
-                    var svg = document.getElementsByTagName( 'svg' )[ 0 ];
-                    var boundingBox = svg.getBBox( );
-                    var width = boundingBox.width + 20;
-                    var height = boundingBox.height + 20;
-                    svg.style['min-width'] = width + 'px';
-                    svg.style['min-height'] = height + 'px';
-                    ${
-                        backgroundColor != undefined
-                            ? `svg.style['background-color'] = '${backgroundColor}';`
-                            : "//no background color specified."
-                    }
-                </script>
-            </body></html>`;
-        }
-
-        get onDidChange(): vscode.Event<vscode.Uri> {
-            return this._onDidChange.event;
-        }
-
-        public update(uri: vscode.Uri) {
-            this._onDidChange.fire(uri);
+    function updatePewviewContent(
+        panel: vscode.WebviewPanel | undefined,
+        document: vscode.TextDocument | undefined
+    ): void {
+        if (
+            panel &&
+            document &&
+            document === vscode.window.activeTextEditor?.document
+        ) {
+            panel.webview.html = generateDiagram(document.getText());
         }
     }
 
-    let provider = new TextDocumentContentProvider();
-    let registration = vscode.workspace.registerTextDocumentContentProvider(
-        "nomnoml-preview",
-        provider
-    );
-
-    vscode.workspace.onDidChangeTextDocument(
-        (e: vscode.TextDocumentChangeEvent) => {
-            if (e.document === vscode.window.activeTextEditor?.document) {
-                provider.update(previewUri);
-            }
+    class WebviewPanelObservable {
+        constructor(
+            context: vscode.ExtensionContext,
+            public current: vscode.WebviewPanel | undefined = undefined
+        ) {
+            this.current = current;
+            current?.onDidDispose(
+                () => (this.current = undefined),
+                null,
+                context.subscriptions
+            );
         }
-    );
+    }
+
+    let panelObservable = new WebviewPanelObservable(context);
 
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand(
-        "extension.nomnoml",
-        () => {
+    context.subscriptions.push(
+        vscode.commands.registerCommand("extension.nomnoml", () => {
             // The code you place here will be executed every time your command is executed
+            let panel = panelObservable.current;
+            if (panel) {
+                panel.reveal();
+            } else {
+                panel = createPreviewPanel(context);
+                panelObservable = new WebviewPanelObservable(context, panel);
+            }
 
-            return vscode.commands
-                .executeCommand(
-                    "vscode.previewHtml",
-                    previewUri,
-                    vscode.ViewColumn.Two
-                )
-                .then(
-                    success => {},
-                    reason => {
-                        vscode.window.showErrorMessage(reason);
-                    }
-                );
-        }
+            const editor = vscode.window.activeTextEditor;
+            if (editor?.document.languageId == "nomnoml") {
+                panel.webview.html = generateDiagram(editor.document.getText());
+            } else {
+                panel.webview.html = getSplashContent();
+            }
+        })
     );
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument(e =>
+            updatePewviewContent(panelObservable.current, e.document)
+        )
+    );
+
+    context.subscriptions.push({
+        dispose: () => panelObservable.current?.dispose()
+    });
 }
 
 // this method is called when your extension is deactivated
