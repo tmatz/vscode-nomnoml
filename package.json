@@ -1,62 +1,67 @@
 {
-  "name": "vscode-nomnoml",
-  "displayName": "nomnoml",
-  "description": "A tool for rendering UML diagrams based on the nomnoml library.",
-  "version": "0.3.0",
-  "publisher": "doctorrustynelson",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doctorrustynelson/vscode-nomnoml.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doctorrustynelson/vscode-nomnoml/issues"
-  },
-  "engines": {
-    "vscode": "^1.43.0"
-  },
-  "keywords": [
-    "nomnoml",
-    "uml",
-    "diagrams"
-  ],
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onCommand:extension.nomnoml"
-  ],
-  "main": "./out/extension.js",
-  "contributes": {
-    "languages": [
-      {
-        "id": "nomnoml",
-        "extensions": [
-          ".nomnoml"
-        ]
-      }
+    "name": "vscode-nomnoml",
+    "displayName": "nomnoml",
+    "description": "A tool for rendering UML diagrams based on the nomnoml library.",
+    "version": "0.3.0",
+    "publisher": "doctorrustynelson",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/doctorrustynelson/vscode-nomnoml.git"
+    },
+    "bugs": {
+        "url": "https://github.com/doctorrustynelson/vscode-nomnoml/issues"
+    },
+    "engines": {
+        "vscode": "^1.43.0"
+    },
+    "keywords": [
+        "nomnoml",
+        "uml",
+        "diagrams"
     ],
-    "commands": [
-      {
-        "command": "extension.nomnoml",
-        "title": "View: nomnoml"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
-  },
-  "dependencies": {
-    "nomnoml": "^0.6.2"
-  },
-  "devDependencies": {
-    "@types/node": "^12.11.7",
-    "@types/vscode": "^1.43.0",
-    "@typescript-eslint/eslint-plugin": "^2.18.0",
-    "@typescript-eslint/parser": "^2.18.0",
-    "eslint": "^6.8.0",
-    "typescript": "^3.7.5"
-  }
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:extension.nomnoml"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "nomnoml",
+                "extensions": [
+                    ".nomnoml"
+                ]
+            }
+        ],
+        "commands": [
+            {
+                "command": "extension.nomnoml",
+                "title": "View: nomnoml"
+            }
+        ]
+    },
+    "scripts": {
+        "package": "npx vsce package",
+        "publish": "npx vsce publish",
+        "vscode:prepublish": "webpack --mode production",
+        "compile": "webpack --mode development",
+        "watch": "webpack --mode development --watch"
+    },
+    "dependencies": {
+        "nomnoml": "^0.6.2"
+    },
+    "devDependencies": {
+        "@types/node": "^12.11.7",
+        "@types/vscode": "^1.43.0",
+        "@typescript-eslint/eslint-plugin": "^2.18.0",
+        "@typescript-eslint/parser": "^2.18.0",
+        "eslint": "^6.8.0",
+        "ts-loader": "^6.2.1",
+        "typescript": "^3.7.5",
+        "webpack": "^4.42.0",
+        "webpack-cli": "^3.3.11"
+    }
 }

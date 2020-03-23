@@ -1,8 +1,10 @@
-.vscode/**
-typings/**
-out/test/**
-test/**
-src/**
-**/*.map
+.vscode/
+node_modules/
+out/test/
+src/
+test/
 .gitignore
 tsconfig.json
+webpack.config.js
+*.vsix
+*.zip
